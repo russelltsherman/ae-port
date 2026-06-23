@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/russelltsherman/ae-plugins/cli-port/port.config.schema.json",
+  "title": "cli-port project config",
+  "description": "Parameterizes a faithful port: source, target, the live oracle, and the determinism contract that makes byte-comparison possible.",
+  "type": "object",
+  "required": ["source", "target", "oracle", "determinism", "corpus"],
+  "additionalProperties": false,
+  "properties": {
+    "source": {
+      "type": "object",
+      "required": ["repo", "lang", "entrypoint", "binary"],
+      "additionalProperties": false,
+      "properties": {
+        "repo": { "type": "string", "description": "Path or URL to the source repo." },
+        "lang": { "type": "string", "description": "Source language, e.g. typescript." },
+        "runtime": { "type": "string", "description": "Runtime used to run the source, e.g. bun." },
+        "entrypoint": { "type": "string", "description": "Source entrypoint, e.g. src/index.ts." },
+        "binary": { "type": "string", "description": "Invoked binary/command name, e.g. sd." }
+      }
+    },
+    "target": {
+      "type": "object",
+      "required": ["lang", "binary"],
+      "additionalProperties": false,
+      "properties": {
+        "lang": { "type": "string", "description": "Target language, e.g. go." },
+        "module": { "type": "string", "description": "Target module path, e.g. github.com/you/seeds-go." },
+        "binary": { "type": "string", "description": "Target binary name; should match source binary." }
+      }
+    },
+    "oracle": {
+      "type": "object",
+      "required": ["mode", "command"],
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["live", "snapshot"],
+          "description": "live = run the source per case; snapshot = diff against committed goldens."
+        },
+        "command": {
+          "type": "string",
+          "description": "Shell command that runs the source CLI, e.g. 'bun src/index.ts'. Args are appended."
+        }
+      }
+    },
+    "determinism": {
+      "type": "object",
+      "required": ["envPins", "maskRules", "sandboxPathVar"],
+      "additionalProperties": false,
+      "properties": {
+        "envPins": {
+          "type": "object",
+          "description": "Environment applied identically to source and target to remove ambient entropy.",
+          "additionalProperties": { "type": "string" }
+        },
+        "maskRules": {
+          "type": "array",
+          "description": "Ordinal canonicalization rules applied to BOTH captures before byte-comparison.",
+          "items": {
+            "type": "object",
+            "required": ["name", "pattern", "mode"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string" },
+              "pattern": { "type": "string", "description": "Regex matching the nondeterministic token." },
+              "mode": {
+                "type": "string",
+                "enum": ["ordinal"],
+                "description": "Nth distinct match -> <NAME:n> in first-seen order; preserves cardinality and references."
+              },
+              "assertFormat": {
+                "type": "boolean",
+                "description": "If true, assert the pre-mask token shape (regex/length) before substitution so format bugs still fail."
+              },
+              "ordered": {
+                "type": "boolean",
+                "description": "If true, also assert the ordering relationship among distinct matches (e.g. timestamps)."
+              }
+            }
+          }
+        },
+        "sandboxPathVar": {
+          "type": "string",
+          "description": "Placeholder the temp sandbox path is rewritten to, e.g. <ROOT>."
+        }
+      }
+    },
+    "corpus": {
+      "type": "string",
+      "description": "Path to the test corpus directory (seed + adversarial cases)."
+    },
+    "adversarial": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dryRoundsToStop": { "type": "integer", "minimum": 1, "default": 2 },
+        "maxRounds": { "type": "integer", "minimum": 1, "default": 12 }
+      }
+    }
+  }
+}

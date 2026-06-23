@@ -1,0 +1,47 @@
+{
+  "source": {
+    "repo": "github.com/jayminwest/seeds",
+    "lang": "typescript",
+    "runtime": "bun",
+    "entrypoint": "src/index.ts",
+    "binary": "sd"
+  },
+  "target": {
+    "lang": "go",
+    "module": "github.com/jayminwest/seeds-go",
+    "binary": "sd"
+  },
+  "oracle": {
+    "mode": "live",
+    "command": "bun src/index.ts"
+  },
+  "determinism": {
+    "envPins": {
+      "NO_COLOR": "1",
+      "FORCE_COLOR": "0",
+      "TZ": "UTC",
+      "LC_ALL": "C"
+    },
+    "maskRules": [
+      {
+        "name": "ID",
+        "pattern": "sd-[0-9a-f]{4,8}",
+        "mode": "ordinal",
+        "assertFormat": true
+      },
+      {
+        "name": "TS",
+        "pattern": "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})",
+        "mode": "ordinal",
+        "assertFormat": true,
+        "ordered": true
+      }
+    ],
+    "sandboxPathVar": "<ROOT>"
+  },
+  "corpus": "corpus",
+  "adversarial": {
+    "dryRoundsToStop": 2,
+    "maxRounds": 12
+  }
+}

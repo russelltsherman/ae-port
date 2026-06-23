@@ -1,0 +1,15 @@
+{
+  "name": "ae-port",
+  "description": "Russell Sherman's Claude Code plugins for agentic engineering workflows.",
+  "owner": {
+    "name": "Russell Sherman",
+    "url": "https://github.com/russelltsherman"
+  },
+  "plugins": [
+    {
+      "name": "cli",
+      "source": "./src/cli",
+      "description": "Agent team and workflow for faithfully porting a CLI to another language with bit-by-bit identical output, verified by differential testing."
+    }
+  ]
+}
