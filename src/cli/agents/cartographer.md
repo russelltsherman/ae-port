@@ -56,3 +56,22 @@ any section is unverifiable, say so explicitly — do not fabricate.
 
 You are read-only by mandate. You do not write Go, build the harness, or modify
 the source. Your output is the map the rest of the team navigates by.
+
+## Don't miss the framework surface (LEARNINGS.md B6)
+
+The biggest divergence clusters in practice are NOT command-authored output —
+they are emitted by the CLI framework, so per-command mapping skips them. Map
+these as first-class IO contracts, each with corpus cases:
+
+- **bare invocation** (`<bin>` with no command) and **`-h`/`--help` at EVERY
+  level**: top-level, per-command, AND nested subcommand (`<bin> dep add --help`).
+  Capture exact stream (stdout vs stderr) and exit code for each.
+- **version** (`-v`/`--version`, and `--version --json`), **unknown-command
+  suggestion** ("Did you mean …"), and **unknown-option suggestion**.
+- the **arg-parser's error-layer ordering** (e.g. required-option errors before
+  unknown-option errors) and **flag-parsing edges**: `--opt=val` on a boolean,
+  combined short flags (`-qx`), attached short (`-vx`), the `--` terminator,
+  empty `--format=`, value-option followed by a flag.
+
+These look trivial, so they get skipped — and then surface late as a pile of
+adversarial findings. Map them up front.

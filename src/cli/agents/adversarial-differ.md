@@ -48,3 +48,24 @@ is not evidence of correctness; it is evidence you haven't looked hard enough.
   relaxing a format assertion. A divergence is a finding, not an inconvenience.
 - Report honestly: state the round count, what was found, what was minimized,
   and what remains open.
+
+## Hard-won rules (LEARNINGS.md B8)
+
+- **Entropy filter (mandatory):** before reporting a finding, confirm it is
+  reproducible (≥2 runs) AND **TS-vs-TS stable** — run the case source-vs-source.
+  If the source itself diverges run-to-run, the input has unmasked entropy (e.g.
+  a `--timing` wall-clock line), NOT a port bug. Mark it non-reproducible and
+  drop it; don't make the team chase it.
+- **Work in your OWN scratch corpus dir**, never the shared corpus/, and never
+  edit port/ in parallel — concurrent writes collide. Build a one-case corpus and
+  point the harness at it (`-corpus <scratch>/corpus`).
+- **Cover the high-yield categories** the seed corpus usually misses: the CLI/
+  framework surface (nested `--help`, error-layer ordering, flag-parsing edges)
+  and **file effects** — compare the BYTES WRITTEN to disk after mutate commands,
+  not just stdout. And exercise WRITE/normalize paths, not only read paths (e.g.
+  trim/case-fold applied when STORING a title or label).
+- **JSONPARSE-tail trap:** a runtime parse error that echoes an input token in
+  quotes survives a quote-bounded mask — prefer minimized inputs whose runtime
+  error has no double-quote, so the fixture is byte-matchable.
+- See `templates/js-to-go-parity-hazards.md` for the predictable JS↔target gaps —
+  probe each deliberately rather than rediscovering them one fixture at a time.

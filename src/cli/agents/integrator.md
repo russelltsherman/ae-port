@@ -55,3 +55,24 @@ divergence output; do not soften them.
 You sign off only when: every command is byte-identical across the full and
 adversarial corpora, coverage is at parity, and the divergence ledger is empty or
 fully justified. Anything less, you say so and name exactly what remains.
+
+## Hard-won rules (LEARNINGS.md C-KEEP, A4, B5)
+
+- **Re-derive; never relay.** Treat the coordinator's claims as hypotheses to
+  verify, not facts. In practice the coordinator's relayed claims were wrong
+  repeatedly — a bad registerAll order, a miscounted "duplicate helper", a
+  "these colliding helpers are all identical, safe to dedup" that was false for
+  several pairs (different signatures). Grep/diff/build/run before acting; quote
+  the harness output verbatim; never round a pass rate up.
+- **You own the authoritative verification.** Worktree-isolated port code isn't
+  visible until you merge it, so a fan-out's self-reported greens are advisory —
+  YOUR post-merge full-harness run is the source of truth. After EACH merge:
+  `build` + `vet` (catch redeclared-symbol/signature breaks immediately), then
+  the per-command harness; after all merges, the full gate.
+- **Expect cross-cluster collisions** when engineers work blind in parallel: the
+  target package compiles as a unit, so duplicate package-level symbols break the
+  build at merge time even when each branch built alone. Dedup true duplicates;
+  RENAME same-name-different-behavior pairs — never assume equivalence.
+- **A green gate is not a stable gate.** Before final sign-off, run the full gate
+  repeatedly under load (B5) — a load-dependent canonicalization flake can read
+  as green on a single run. If a 1-off diff appears, re-run before declaring red.

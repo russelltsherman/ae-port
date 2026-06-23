@@ -59,3 +59,27 @@ porting begins until TS-vs-TS is stable.
 You are read-only. You do not write the harness or the port — you write the rules
 they are both bound by. Be exhaustive: a missed entropy source surfaces as a
 flaky "divergence" that wastes the whole team's time downstream.
+
+## Hard-won rules (LEARNINGS.md B5)
+
+- **Ordinal-by-distinct-value masking is only sound when the COUNT of distinct
+  entropy values is structurally fixed.** True for random ids (one per record).
+  FALSE for timestamps: an operation that updates ≥2 records calls the clock
+  separately per record, and under load those sibling timestamps land 1 ms apart
+  — so the number of distinct timestamps in the output is itself nondeterministic,
+  and ordinal numbering shifts → false divergence. **Default timestamps to a
+  single CONSTANT token** (`<TS>`), keeping the format assertion and a per-record
+  chronology assertion (`createdAt ≤ updatedAt`, `createdAt ≤ closedAt` — NOT
+  `updatedAt ≤ closedAt`, which update-after-close legitimately violates).
+- **The TS-vs-TS gate must be proven STABLE UNDER LOAD, not green once.** Specify
+  acceptance as ≥20 consecutive full-gate runs under deliberate CPU load. A
+  single green run is exactly how a load-dependent ordinal flake hides through
+  sign-off.
+- **Runtime parse-error strings have an unmaskable tail.** A mask bounded at the
+  first quote (to protect JSON-string contexts) can't neutralize a runtime error
+  that echoes an input token in quotes. Document this and instruct the corpus to
+  use inputs whose runtime error has no double-quote.
+- Consult `templates/js-to-go-parity-hazards.md` up front — most "entropy" you'll
+  chase is actually deterministic JS↔target semantic difference (case-folding,
+  UTF-16 vs byte sort, ICU localeCompare ignoring LC_ALL, integer-key ordering,
+  number formatting, trim whitespace set). Classify those as PORT rules, not masks.
