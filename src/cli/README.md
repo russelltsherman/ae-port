@@ -38,7 +38,8 @@ is not.
 ## The workflow (`commands/`)
 
 ```
-/cli:port-init <inputdir> <outputdir>   inspect source + interview -> generate config + scaffold
+/cli:port-run-all [--auto] <inputdir> [<outputdir>]   run full pipeline (init → map → harness → run → verify)
+/cli:port-init [--auto] <inputdir> [<outputdir>]      inspect source + interview -> generate config + scaffold
 /cli:port-map       Phase 0 — cartographer fans out -> contracts/
 /cli:port-harness   Phase 1 — auditor + harness; GATE: TS-vs-TS byte-stable
 /cli:port-run       Phase 2 — Workflow fan-out: port -> verify per command (TDD)
@@ -49,10 +50,20 @@ is not.
 `init` reads the source CLI at `inputdir` to infer the source fields, interviews
 you for only what it can't read (target language/module/binary, oracle command),
 writes standard determinism defaults (Phase 1 finalizes the mask rules), then
-**generates `port.config.json` into `outputdir`** and scaffolds the working tree
-there. It verifies the oracle runs, then tells you to `cd` into `outputdir`. Every
-later command operates on the current directory, so run them from the working
-tree — there is no config to hand-author and no path to repeat per command.
+**generates `port.config.json` into `outputdir`** (or `<inputdir>_<target.lang>`
+if omitted) and scaffolds the working tree there. It verifies the oracle runs,
+then tells you to `cd` into `outputdir`. Every later command operates on the
+current directory, so run them from the working tree — there is no config to
+hand-author and no path to repeat per command.
+
+**`--auto` flag** on `init` and `run-all` skips confirmation prompts (overwrite
+existing config, next-step handoff) but does not skip the interview — if required
+information is missing, the agent still asks.
+
+**`/cli:port-run-all`** orchestrates the entire pipeline from a single command:
+init (if config is missing), map, harness, port fan-out, adversarial sweep, and
+sign-off. It auto-detects the resume point from artifacts, enforces each gate,
+and escalates on failure. Use it for fully automated runs.
 
 Phases 2–3 are driven by the Workflow scripts in `workflows/` (`port-fanout`,
 `adversarial-sweep`), invoked by the commands via `scriptPath`.

@@ -1,6 +1,6 @@
 ---
 description: Inspect a source CLI, interview for the rest, generate port.config.json into the output dir, and scaffold the working tree.
-argument-hint: <inputdir> <outputdir>
+argument-hint: [--auto] <inputdir> [<outputdir>]
 ---
 
 Initialize a cli-port project by **generating** its `port.config.json` from the
@@ -9,16 +9,23 @@ up everything the rest of the workflow operates on; it does not port any code ye
 
 Arguments: `$ARGUMENTS`
 
+- **--auto** (optional flag): when present, skips confirmation prompts
+  (overwrite existing config, next-step handoff). Does **not** skip the
+  interview — if required information is missing, the agent still asks.
 - **inputdir** (first arg, required): path to the source CLI repo being ported.
   Must exist. init inspects it to infer the source fields — do not ask the user
   for anything that can be read from here.
-- **outputdir** (second arg, required): where the generated `port.config.json`
-  and the working tree are written. May name a directory that does not exist yet
-  — create it. This is how the port's output is directed somewhere of the user's
-  choosing, without editing any file by hand.
+- **outputdir** (second arg, optional): where the generated `port.config.json`
+  and the working tree are written. If omitted, the system infers it as
+  `<inputdir>_<target.lang>` (e.g., `~/src/seeds` + `_go` → `~/src/seeds_go`).
+  The `target.lang` is determined from the interview. If `target.lang` is
+  not yet known when `outputdir` is needed, defer inference until after the
+  interview. May name a directory that does not exist yet — create it. This
+  is how the port's output is directed somewhere of the user's choosing,
+  without editing any file by hand.
 
-If either argument is missing, STOP and state the required form
-(`/cli-port:init <inputdir> <outputdir>`) — do not guess paths.
+If `inputdir` is missing, STOP and state the required form
+(`/cli-port:init <inputdir> [<outputdir>]`) — do not guess paths.
 
 Steps:
 
@@ -62,8 +69,9 @@ Steps:
    write an invalid config.
 
 5. **Write** the config to `<outputdir>/port.config.json`. If that file already
-   exists, show it and ask whether to overwrite or reuse it — never silently
-   clobber an existing config.
+   exists and `--auto` is not set, show it and ask whether to overwrite or
+   reuse it — never silently clobber an existing config. If `--auto` is set,
+   overwrite without prompting.
 
 6. **Scaffold** the working tree under `outputdir`:
    - `contracts/`        (Cartographer output)
@@ -79,11 +87,11 @@ Steps:
    produces output and a clean exit. Report the captured output verbatim. If it
    fails, STOP — the live oracle is a precondition for every later phase.
 
-8. Report the absolute `outputdir` path and direct the user to run the rest of the
-   workflow from there. Every later command (`/cli-port:map`, `:harness`, `:run`,
-   `:verify`, `:status`) operates on the current directory, so they must be run
-   from the working tree. Print the next step as
-   `cd <outputdir> && /cli-port:map` and a one-line readiness summary.
+8. Report the absolute `outputdir` path and a one-line readiness summary. If
+   `--auto` is not set, direct the user to run the rest of the workflow from
+   there and print the next step as
+   `cd <outputdir> && /cli-port:map`. If `--auto` is set, skip the next-step
+   handoff — just report the outputdir path and readiness summary.
 
 Be honest about readiness: if the oracle isn't runnable, a required field could
 not be resolved, or the config did not validate, the project is NOT initialized —
