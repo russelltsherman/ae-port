@@ -10,6 +10,11 @@
       "name": "cli",
       "source": "./src/cli",
       "description": "Agent team and workflow for faithfully porting a CLI to another language with bit-by-bit identical output, verified by differential testing."
+    },
+    {
+      "name": "portkit",
+      "source": "./src/portkit",
+      "description": "Analyze a codebase into a target-neutral, vertical-slice build kit so a weaker downstream model can recreate the project in a different language or framework."
     }
   ]
 }
